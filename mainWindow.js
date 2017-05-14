@@ -1,9 +1,12 @@
 const { BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('path')
 const url = require('url')
+const fs = require('fs')
 const windowStateKeeper = require('electron-window-state');
 
-const targetUrl = 'https://owa.de2.hostedoffice.ag/owa/';
+const APP_ARGS_FILE_PATH = path.join(__dirname, 'electron-owa.json');
+const appArgs = JSON.parse(fs.readFileSync(APP_ARGS_FILE_PATH, 'utf8'));
+
 const preloadScript = path.join(__dirname, 'inject', 'index.js');
 
 function createMainWindow(onClose) {
@@ -33,7 +36,7 @@ function createMainWindow(onClose) {
 
   mainWindow.webContents.on('new-window', (event, urlToGo) => {
     event.preventDefault()
-    if (linkIsInternal(targetUrl, urlToGo)) {
+    if (linkIsInternal(appArgs.serverUrl, urlToGo)) {
       const win = new BrowserWindow({
         show: false,
         autoHideMenuBar: true,
@@ -50,7 +53,7 @@ function createMainWindow(onClose) {
     }
   });
 
-  mainWindow.loadURL(targetUrl)
+  mainWindow.loadURL(appArgs.serverUrl)
 
   // Emitted when the window is closed.
   mainWindow.on('closed', onClose)
