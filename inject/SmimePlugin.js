@@ -3,6 +3,7 @@ const asn1js = require('asn1js');
 const MimeParser = require('emailjs-mime-parser');
 const { stringToArrayBuffer, utilConcatBuf } = require('pvutils');
 const crypto = require('crypto');
+const api = require('./api');
 
 const PREFIX_SIGNED = 'data:multipart/signed;base64,';
 const PREFIX_ENCRYPTED = 'data:application/pkcs7-mime;base64,';
@@ -80,8 +81,8 @@ class SmimePlugin {
                     IsHashMatched: result,
                     ServerVerificationResult: -1
                 },
-                SmimeType: 11
-            }, ErrorCode: 0}));
+                SmimeType: api.SmimeType.ClearSigned
+            }, ErrorCode: api.ErrorCode.NoError}));
         }, function(err) {
             cb(JSON.stringify({ErrorCode: err}));
         });
@@ -100,7 +101,7 @@ class SmimePlugin {
 
         console.log(cmsEnvelopedSimp)
         
-        cb(JSON.stringify({ErrorCode: 67}));
+        cb(JSON.stringify({ErrorCode: api.ErrorCode.CannotGetSubjectCertFromStore}));
     }
     
     CreateSmimeFromMessageAsync(smimeType, emailMessage, encryptionCertificates, signingCertificate, cb) {
