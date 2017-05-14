@@ -2,6 +2,7 @@ const { ContentInfo, SignedData, Certificate, EnvelopedData } = require('pkijs')
 const asn1js = require('asn1js');
 const MimeParser = require('emailjs-mime-parser');
 const { stringToArrayBuffer, utilConcatBuf } = require('pvutils');
+const crypto = require('crypto');
 
 const PREFIX_SIGNED = 'data:multipart/signed;base64,';
 const PREFIX_ENCRYPTED = 'data:application/pkcs7-mime;base64,';
@@ -56,16 +57,31 @@ class SmimePlugin {
         const signedDataBuffer = stringToArrayBuffer(parser.nodes.node1.raw.replace(/\n/g, "\r\n"));
 
         cmsSignedSimpl.verify({ signer: 0, data: signedDataBuffer }).then(function(result) {
+            const textContent = getContent(parser, "text/plain");
+            const htmlContent = getContent(parser, "text/html");
             cb(JSON.stringify({Data: {
+                ItemClass: "IPM.Note.SMIME.MultipartSigned",
+                ItemId: {
+                    Id: "smime-" + crypto.randomBytes(16).toString('hex')
+                },
+                NormalizedBody: {
+                    BodyType: htmlContent ? "HTML" : "Text",
+                    Value: htmlContent || textContent
+                },
                 SmimeSignature: {
-                    CertIssuedTo: getMail(signerCert.subject) || getCN(signerCert.subject),
-                    CertIssuedBy: getCN(signerCert.issuer),
+                    CertIssuedTo: formatDN(signerCert.subject),
+                    CertIssuedBy: formatDN(signerCert.issuer),
                     CertValidFrom: signerCert.notBefore.value.toLocaleString(),
                     CertValidTo: signerCert.notAfter.value.toLocaleString(),
                     CertRawData: certToBase64(signerCert),
-                    IsHashMatched: result
-                }
-            }}));
+                    ClientVerificationResult: 0,
+                    IsCertValidToClient: true,
+                    IsCertValidToServer: false,
+                    IsHashMatched: result,
+                    ServerVerificationResult: -1
+                },
+                SmimeType: 11
+            }, ErrorCode: 0}));
         }, function(err) {
             cb(JSON.stringify({ErrorCode: err}));
         });
@@ -98,14 +114,45 @@ class SmimePlugin {
     }
 }
 
-function getCN(relativeDNs) {
-    const cnAttrs = relativeDNs.typesAndValues.filter(attr => attr.type === "2.5.4.3")
-    return cnAttrs.length > 0 ? cnAttrs[0].value.valueBlock.value : null
+function formatDN(relativeDNs) {
+    const rdnmap = {
+        "2.5.4.6": "C",
+        "2.5.4.10": "OU",
+        "2.5.4.11": "O",
+        "2.5.4.3": "CN",
+        "2.5.4.7": "L",
+        "2.5.4.8": "S",
+        "2.5.4.12": "T",
+        "2.5.4.42": "GN",
+        "2.5.4.43": "I",
+        "2.5.4.4": "SN",
+        "2.5.4.13": "Description",
+        "1.2.840.113549.1.9.1": "E"
+    };
+    
+    let result = "";
+    let first = true;
+    for (let i = relativeDNs.typesAndValues.length - 1; i >= 0; i--) {
+        const attr = relativeDNs.typesAndValues[i];
+        if (!rdnmap[attr.type]) {
+            continue;
+        }
+        if (!first) {
+            result = result + ", ";
+        }
+        first = false;
+        result = result + rdnmap[attr.type] + "=" + attr.value.valueBlock.value;
+    }
+    return result;
 }
 
-function getMail(relativeDNs) {
-    const cnAttrs = relativeDNs.typesAndValues.filter(attr => attr.type === "1.2.840.113549.1.9.1")
-    return cnAttrs.length > 0 ? cnAttrs[0].value.valueBlock.value : null
+function getContent(parser, contentType) {
+    for (let key of Object.keys(parser.nodes)) {
+        if (parser.nodes[key].contentType && parser.nodes[key].contentType.value === contentType) {
+            const binContent = parser.nodes[key].content;
+            return Buffer.from(binContent).toString(parser.nodes[key].charset);
+        }
+    }
 }
 
 function certToBase64(certificate) {
