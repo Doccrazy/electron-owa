@@ -1,0 +1,36 @@
+{
+  "name": "electron-owa",
+  "version": "1.0.0",
+  "description": "Electron wrapper for Outlook Web App",
+  "productName": "Outlook Web App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-win": "electron-packager . --platform=win32 --icon=icon.ico --ignore=node_modules/bab.* --overwrite",
+    "package-lin": "electron-packager . --platform=linux --icon=icon.ico --ignore=node_modules/bab.* --overwrite"
+  },
+  "repository": "https://github.com/Doccrazy/electron-owa",
+  "keywords": [
+    "Electron",
+    "Outlook",
+    "OWA"
+  ],
+  "author": "Doccrazy",
+  "license": "MIT",
+  "devDependencies": {
+    "atob": "^2.0.3",
+    "btoa": "^1.1.2",
+    "electron": "^1.7.0",
+    "electron-packager": "^8.7.0",
+    "node-webcrypto-ossl": "^1.0.23"
+  },
+  "dependencies": {
+    "asn1js": "^2.0.13",
+    "electron-window-state": "^4.1.1",
+    "emailjs-addressparser": "^1.0.1",
+    "emailjs-mime-codec": "^1.0.3",
+    "emailjs-mime-parser": "^1.0.0",
+    "pkijs": "^2.0.56",
+    "pvutils": "^1.0.7"
+  }
+}
