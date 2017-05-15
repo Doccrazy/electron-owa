@@ -17,6 +17,8 @@ git clone https://github.com/Doccrazy/electron-owa
 cd electron-owa
 # Install dependencies
 npm install
+# Rebuild electron native module
+./node_modules/.bin/electron-rebuild -w edge
 # Initialize settings
 cp electron-owa.json.example electron-owa.json
 # Run the app

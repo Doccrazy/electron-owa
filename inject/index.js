@@ -1,4 +1,5 @@
-const SmimePlugin = require('./SmimePlugin');
+const SmimePluginEdge = require('./SmimePluginEdge');
+const SmimePluginPKI = require('./SmimePluginPKI');
 const handleLogin = require('./login.js');
 
 if (window.location.pathname.endsWith('/auth/logon.aspx')) {
@@ -20,7 +21,15 @@ if (window.location.pathname.endsWith('/auth/logon.aspx')) {
         
         const SmimePluginBase = _a.SmimePluginFirefox.__baseType;
         _a.SmimePluginFirefox = function() {
-            return new SmimePluginBase(new SmimePlugin());
+            let plg;
+            try {
+                plg = new SmimePluginEdge();
+            } catch (e) {
+                // .NET libraries are probably missing
+                console.warn(e);
+                plg = new SmimePluginPKI();
+            }
+            return new SmimePluginBase(plg);
         }
         /*console.log(_a.$c.$3e);
         _a.$c.$3e = function(n, t, i) {

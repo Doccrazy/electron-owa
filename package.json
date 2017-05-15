@@ -22,10 +22,12 @@
     "btoa": "^1.1.2",
     "electron": "^1.7.0",
     "electron-packager": "^8.7.0",
+    "electron-rebuild": "^1.5.11",
     "node-webcrypto-ossl": "^1.0.23"
   },
   "dependencies": {
     "asn1js": "^2.0.13",
+    "edge": "^7.10.0",
     "electron-window-state": "^4.1.1",
     "emailjs-addressparser": "^1.0.1",
     "emailjs-mime-codec": "^1.0.3",

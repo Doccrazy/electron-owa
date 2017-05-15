@@ -1,3 +1,4 @@
 node_modules
 Outlook Web App*
 electron-owa.json
+inject/lib/*.dll
